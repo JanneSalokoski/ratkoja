@@ -73,32 +73,37 @@ function Grid(props: GridProps) {
     }
 
     function handleKeyPress(_: number, e: React.KeyboardEvent) {
-        console.log(e.key);
-        const index = active !== undefined ? active : 0;
-        const newChar = e.key === "Backspace" ? "" : e.key.toUpperCase();
+        if (active !== undefined) {
+            const index = active;
+            const newChar = e.key === "Backspace" ? "" : e.key.toUpperCase();
 
-        const directionDelta = selectionDirection === SelectionDirection.Horizontal ? 1 : 5;
-        const offset = newChar === "" ? -directionDelta : directionDelta;
+            const directionDelta = selectionDirection === SelectionDirection.Horizontal ? 1 : 5;
+            const offset = newChar === "" ? -directionDelta : directionDelta;
 
-        let newIndex = index + offset;
+            let newIndex = index + offset;
 
-        if (selectionDirection === SelectionDirection.Horizontal) {
-            const currentRow = Math.floor(index / 5);
-            const targetRow = Math.floor(newIndex / 5);
-            if (targetRow !== currentRow || newIndex < 0 || newIndex >= 25) {
-                newIndex = index;
+            if (selectionDirection === SelectionDirection.Horizontal) {
+                const currentRow = Math.floor(index / 5);
+                const targetRow = Math.floor(newIndex / 5);
+                if (targetRow !== currentRow || newIndex < 0 || newIndex >= 25) {
+                    newIndex = index;
+                }
+            } else {
+                if (newIndex < 0 || newIndex >= 25) {
+                    newIndex = index;
+                }
             }
-        } else {
-            if (newIndex < 0 || newIndex >= 25) {
-                newIndex = index;
+
+            let newLetters = [...letters];
+            newLetters[index] = newChar;
+
+            setLetters(newLetters);
+            setActive(newIndex);
+
+            if (disabled.includes(newIndex)) {
+                setActive(undefined);
             }
         }
-
-        let newLetters = [...letters];
-        newLetters[index] = newChar;
-
-        setLetters(newLetters);
-        setActive(newIndex);
     }
 
     return (

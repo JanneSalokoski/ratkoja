@@ -12,10 +12,17 @@
 }
 
 .Cell {
-    /* border: 1px solid red; */
     background-color: #1a1a1f;
     border-radius: 2px;
     transition: 200ms;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 3rem;
+
+    user-select: none;
 
     &:hover {
         background-color: #1c1c22;

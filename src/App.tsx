@@ -43,6 +43,7 @@ enum SelectionDirection {
 interface GridProps {
     disabling: boolean;
     handleKnown: (newKnown: string[]) => void
+    handleGroupSelect: (newSelectedGroup: any) => void
 }
 
 function Grid(props: GridProps) {
@@ -96,7 +97,30 @@ function Grid(props: GridProps) {
 
         let newGroups = rowGroups.concat(colGroups).filter((x) => x.length > 2);
         setGroups(newGroups);
+
     }, [disabled]);
+
+    function updateSelectedGroup(index: number) {
+        const matchingGroups = groups.filter(group => group.includes(index));
+
+        let targetGroup = matchingGroups.find(group => {
+            const start = group[0];
+            const end = group[group.length - 1];
+
+            if (selectionDirection === SelectionDirection.Horizontal) {
+                return Math.floor(start / 5) === Math.floor(end / 5); // same row
+            } else {
+                return start % 5 === end % 5; // same column
+            }
+        });
+
+        if (targetGroup) {
+            props.handleGroupSelect(groups.indexOf(targetGroup));
+        } else {
+            // props.handleGroupSelect(-1); // nothing selected
+        }
+    }
+
 
     useEffect(() => {
         let known: string[] = [];
@@ -117,6 +141,13 @@ function Grid(props: GridProps) {
         props.handleKnown(known);
     }, [groups, letters])
 
+    useEffect(() => {
+        if (active !== undefined) {
+            updateSelectedGroup(active);
+        }
+    }, [selectionDirection]);
+
+
     function handleClick(index: number, _: React.MouseEvent) {
         if (!props.disabling) {
             if (active === index) {
@@ -130,6 +161,9 @@ function Grid(props: GridProps) {
 
             const col = index % 5;
             setSelectedCol(col);
+
+            updateSelectedGroup(index);
+
         } else {
             console.log(disabled);
             if (!disabled.includes(index)) {
@@ -173,6 +207,8 @@ function Grid(props: GridProps) {
 
             setLetters(newLetters);
             setActive(newIndex);
+
+            updateSelectedGroup(index);
 
             if (disabled.includes(newIndex)) {
                 setActive(undefined);
@@ -222,6 +258,7 @@ function LetterBlock(props: LetterBlockProps) {
 interface CandidatesProps {
     known: string[];
     words: string[];
+    selected: number;
 }
 
 function Candidates(props: CandidatesProps) {
@@ -236,7 +273,7 @@ function Candidates(props: CandidatesProps) {
                     if (value === ".") {
                         continue;
                     }
-                    if (word[index].toLowerCase() !== value.toLowerCase()) {
+                    if (word[index] && word[index].toLowerCase() !== value.toLowerCase()) {
                         matching = false;
                         break;
                     }
@@ -248,24 +285,19 @@ function Candidates(props: CandidatesProps) {
         }
         setCandidates(newCandidates);
     }, [props.known, props.words])
-    return (
-        <ol className="Candidates">
-            {
-                props.known.map((pattern, idx) => (
-                    <li key={idx}>
-                        <span className="pattern">{[...pattern].map((letter) => <LetterBlock value={letter} />)}</span>
-                        <ul>
-                            {
-                                candidates[idx]?.map(word => (
-                                    <li className="candidate">{[...word.toUpperCase()].map((letter) => <LetterBlock value={letter} />)}</li>
-                                ))
-                            }
-                        </ul>
-                    </li>
-                ))
-            }
-        </ol>
-    )
+
+    return props.known[props.selected] !== undefined ? (
+        <div className="Candidates">
+            <span className="pattern">{[...props.known[props.selected]].map((letter) => <LetterBlock value={letter} />)}</span>
+            <ul>
+                {
+                    candidates[props.selected]?.map(word => (
+                        <li className="candidate">{[...word.toUpperCase()].map((letter) => <LetterBlock value={letter} />)}</li>
+                    ))
+                }
+            </ul>
+        </div>
+    ) : (<></>)
 }
 
 function App() {
@@ -301,9 +333,15 @@ function App() {
             })
     }, [])
 
+    let [selectedGroup, setSelectedGroup] = useState<number>(0);
+
+    function groupSelectHandler(newSelectedGroup: number) {
+        setSelectedGroup(newSelectedGroup);
+    }
+
     return (
         <div className="App" tabIndex={-1} onKeyUp={keyUpHandler}>
-            <Grid disabling={disabling} handleKnown={knownHandler} />
+            <Grid disabling={disabling} handleKnown={knownHandler} handleGroupSelect={groupSelectHandler} />
             <div className="Controls">
                 <label htmlFor="disabling">
                     Disabling:
@@ -314,7 +352,7 @@ function App() {
                     />
                 </label>
             </div>
-            <Candidates known={known} words={words} />
+            <Candidates known={known} words={words} selected={selectedGroup} />
         </div>
     )
 }

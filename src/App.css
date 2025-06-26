@@ -62,6 +62,11 @@
     margin-left: 0.5rem;
 }
 
+.Candidates {
+    display: grid;
+    justify-content: center;
+}
+
 .candidate,
 .pattern {
     display: flex;

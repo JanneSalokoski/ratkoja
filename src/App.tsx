@@ -6,6 +6,7 @@ interface CellProps {
     index: number;
     active: boolean;
     selected: boolean;
+    disabled: boolean;
     clickHandler: (index: number, e: React.MouseEvent) => void;
     keyPressHandler: (index: number, e: React.KeyboardEvent) => void;
 }
@@ -17,6 +18,7 @@ function Cell(props: CellProps) {
             className={
                 `Cell ${props.active ? "active" : ""}
                 ${props.selected ? "selected" : ""}
+                ${props.disabled ? "disabled" : ""}
                 `
             }
             onClick={(e: React.MouseEvent) => props.clickHandler(props.index, e)}
@@ -32,25 +34,42 @@ enum SelectionDirection {
     Vertical,
 }
 
-function Grid() {
+interface GridProps {
+    disabling: boolean
+}
+
+function Grid(props: GridProps) {
     let [letters, setLetters] = useState<(string)[]>(new Array(25).fill(""));
     let [active, setActive] = useState<number | undefined>();
     let [selectedRow, setSelectedRow] = useState<number | undefined>();
     let [selectedCol, setSelectedCol] = useState<number | undefined>();
     let [selectionDirection, setSelectionDirection] = useState<SelectionDirection>(SelectionDirection.Horizontal);
+    let [disabled, setDisabled] = useState<number[]>([]);
 
     function handleClick(index: number, _: React.MouseEvent) {
-        if (active === index) {
-            setSelectionDirection(selectionDirection === SelectionDirection.Vertical ? SelectionDirection.Horizontal : SelectionDirection.Vertical)
+        if (!props.disabling) {
+            if (active === index) {
+                setSelectionDirection(selectionDirection === SelectionDirection.Vertical ? SelectionDirection.Horizontal : SelectionDirection.Vertical)
+            } else {
+                setActive(index);
+            }
+
+            const row = Math.floor(index / 5);
+            setSelectedRow(row);
+
+            const col = index % 5;
+            setSelectedCol(col);
         } else {
-            setActive(index);
+            console.log(disabled);
+            if (!disabled.includes(index)) {
+                let newDisabled = [...disabled, index];
+                setDisabled(newDisabled);
+            }
+            else {
+                let newDisabled = disabled.filter((x: number) => x !== index);
+                setDisabled(newDisabled);
+            }
         }
-
-        const row = Math.floor(index / 5);
-        setSelectedRow(row);
-
-        const col = index % 5;
-        setSelectedCol(col);
     }
 
     function handleKeyPress(_: number, e: React.KeyboardEvent) {
@@ -93,6 +112,7 @@ function Grid() {
                     letter={letter}
                     active={active == index}
                     selected={selectionDirection === SelectionDirection.Horizontal && selectedRow === row || selectionDirection === SelectionDirection.Vertical && selectedCol === col}
+                    disabled={disabled.includes(index)}
                     clickHandler={handleClick}
                     keyPressHandler={handleKeyPress}
                 />
@@ -104,9 +124,24 @@ function Grid() {
 }
 
 function App() {
+    let [disabling, setDisabling] = useState<boolean>(false);
+
+    function handleSelect(_: React.ChangeEvent) {
+        setDisabling(!disabling);
+    }
+
     return (
         <div className="App">
-            <Grid />
+            <Grid disabling={disabling} />
+            <div className="Controls">
+                <label htmlFor="disabling">
+                    Disabling:
+                    <input type="checkbox"
+                        id="disabling"
+                        onChange={handleSelect}
+                    />
+                </label>
+            </div>
         </div>
     )
 }

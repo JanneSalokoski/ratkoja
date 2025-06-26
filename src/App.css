@@ -1,6 +1,7 @@
 .App {
     padding: 2rem;
-    display: flex;
+    display: grid;
+    gap: 2rem;
     justify-content: center;
 }
 
@@ -38,4 +39,12 @@
         background-color: #334;
         transition: inherit;
     }
+}
+
+.Cell.disabled {
+    background-color: inherit;
+}
+
+.Controls label input {
+    margin-left: 0.5rem;
 }

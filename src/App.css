@@ -61,3 +61,28 @@
 .Controls label input {
     margin-left: 0.5rem;
 }
+
+.candidate,
+.pattern {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.LetterBlock {
+    display: block;
+    width: 1.5rem;
+
+    background-color: #1a1a1f;
+    border-radius: 2px;
+
+    padding: 0.2rem;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pattern .LetterBlock {
+    background-color: #223;
+}

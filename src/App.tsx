@@ -207,16 +207,61 @@ function Grid(props: GridProps) {
     )
 }
 
+interface LetterBlockProps {
+    value: string;
+}
+
+function LetterBlock(props: LetterBlockProps) {
+    return (
+        <span className="LetterBlock">
+            {props.value}
+        </span>
+    )
+}
+
 interface CandidatesProps {
     known: string[];
+    words: string[];
 }
 
 function Candidates(props: CandidatesProps) {
+    let [candidates, setCandidates] = useState<string[][]>([]);
+
+    useEffect(() => {
+        let newCandidates: string[][] = Array.from({ length: props.known.length }, () => []);
+        for (const word of props.words) {
+            for (const [patIdx, pattern] of props.known.entries()) {
+                let matching = true;
+                for (const [index, value] of [...pattern].entries()) {
+                    if (value === ".") {
+                        continue;
+                    }
+                    if (word[index].toLowerCase() !== value.toLowerCase()) {
+                        matching = false;
+                        break;
+                    }
+                }
+                if (matching && word.length === pattern.length) {
+                    newCandidates[patIdx].push(word);
+                }
+            }
+        }
+        setCandidates(newCandidates);
+    }, [props.known, props.words])
     return (
         <ol className="Candidates">
             {
-                props.known.map((known, idx) => (
-                    <li key={idx}>{known}</li>
+                props.known.map((pattern, idx) => (
+                    <li key={idx}>
+                        <span className="pattern">{[...pattern].map((letter) => <LetterBlock value={letter} />)}</span>
+                        <ul>
+                            {
+                                candidates[idx]?.map(word => (
+                                    <li className="candidate">{[...word.toUpperCase()].map((letter) => <LetterBlock value={letter} />)}</li>
+                                ))
+                            }
+                        </ul>
+                    </li>
                 ))
             }
         </ol>
@@ -241,6 +286,21 @@ function App() {
         setKnown(newKnown);
     }
 
+    let [words, setWords] = useState<string[]>([]);
+
+    useEffect(() => {
+        fetch("/words/finnish.txt")
+            .then((res) => res.text())
+            .then((text) => {
+                const newWords = text
+                    .split("\n")
+                    .map(word => word.trim())
+                    .filter(Boolean);
+
+                setWords(newWords);
+            })
+    }, [])
+
     return (
         <div className="App" tabIndex={-1} onKeyUp={keyUpHandler}>
             <Grid disabling={disabling} handleKnown={knownHandler} />
@@ -254,7 +314,7 @@ function App() {
                     />
                 </label>
             </div>
-            <Candidates known={known} />
+            <Candidates known={known} words={words} />
         </div>
     )
 }

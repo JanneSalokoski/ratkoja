@@ -41,7 +41,8 @@ enum SelectionDirection {
 }
 
 interface GridProps {
-    disabling: boolean
+    disabling: boolean;
+    handleKnown: (newKnown: string[]) => void
 }
 
 function Grid(props: GridProps) {
@@ -96,6 +97,25 @@ function Grid(props: GridProps) {
         let newGroups = rowGroups.concat(colGroups).filter((x) => x.length > 2);
         setGroups(newGroups);
     }, [disabled]);
+
+    useEffect(() => {
+        let known: string[] = [];
+
+        for (let group of groups) {
+            let knownWord = "";
+            for (let idx of group) {
+                if (letters[idx] !== "") {
+                    knownWord += letters[idx]
+                } else {
+                    knownWord += "."
+                }
+            }
+
+            known.push(knownWord);
+        }
+
+        props.handleKnown(known);
+    }, [groups, letters])
 
     function handleClick(index: number, _: React.MouseEvent) {
         if (!props.disabling) {
@@ -187,6 +207,22 @@ function Grid(props: GridProps) {
     )
 }
 
+interface CandidatesProps {
+    known: string[];
+}
+
+function Candidates(props: CandidatesProps) {
+    return (
+        <ol className="Candidates">
+            {
+                props.known.map((known, idx) => (
+                    <li key={idx}>{known}</li>
+                ))
+            }
+        </ol>
+    )
+}
+
 function App() {
     let [disabling, setDisabling] = useState<boolean>(false);
 
@@ -200,9 +236,14 @@ function App() {
         }
     }
 
+    let [known, setKnown] = useState<string[]>([]);
+    function knownHandler(newKnown: string[]) {
+        setKnown(newKnown);
+    }
+
     return (
         <div className="App" tabIndex={-1} onKeyUp={keyUpHandler}>
-            <Grid disabling={disabling} />
+            <Grid disabling={disabling} handleKnown={knownHandler} />
             <div className="Controls">
                 <label htmlFor="disabling">
                     Disabling:
@@ -213,6 +254,7 @@ function App() {
                     />
                 </label>
             </div>
+            <Candidates known={known} />
         </div>
     )
 }

@@ -7,11 +7,21 @@ interface CellProps {
     active: boolean;
     selected: boolean;
     clickHandler: (index: number, e: React.MouseEvent) => void;
+    keyPressHandler: (index: number, e: React.KeyboardEvent) => void;
 }
 
 function Cell(props: CellProps) {
     return (
-        <div className={`Cell ${props.active ? "active" : ""} ${props.selected ? "selected" : ""}`} onClick={(e: React.MouseEvent) => props.clickHandler(props.index, e)}>
+        <div
+            tabIndex={props.index}
+            className={
+                `Cell ${props.active ? "active" : ""}
+                ${props.selected ? "selected" : ""}
+                `
+            }
+            onClick={(e: React.MouseEvent) => props.clickHandler(props.index, e)}
+            onKeyUp={(e: React.KeyboardEvent) => props.keyPressHandler(props.index, e)}
+        >
             <span className="letter">{props.letter}</span>
         </div>
     )
@@ -43,6 +53,35 @@ function Grid() {
         setSelectedCol(col);
     }
 
+    function handleKeyPress(_: number, e: React.KeyboardEvent) {
+        console.log(e.key);
+        const index = active !== undefined ? active : 0;
+        const newChar = e.key === "Backspace" ? "" : e.key.toUpperCase();
+
+        const directionDelta = selectionDirection === SelectionDirection.Horizontal ? 1 : 5;
+        const offset = newChar === "" ? -directionDelta : directionDelta;
+
+        let newIndex = index + offset;
+
+        if (selectionDirection === SelectionDirection.Horizontal) {
+            const currentRow = Math.floor(index / 5);
+            const targetRow = Math.floor(newIndex / 5);
+            if (targetRow !== currentRow || newIndex < 0 || newIndex >= 25) {
+                newIndex = index;
+            }
+        } else {
+            if (newIndex < 0 || newIndex >= 25) {
+                newIndex = index;
+            }
+        }
+
+        let newLetters = [...letters];
+        newLetters[index] = newChar;
+
+        setLetters(newLetters);
+        setActive(newIndex);
+    }
+
     return (
         <div className="Grid">
             {letters.map((letter, index) => {
@@ -54,7 +93,9 @@ function Grid() {
                     letter={letter}
                     active={active == index}
                     selected={selectionDirection === SelectionDirection.Horizontal && selectedRow === row || selectionDirection === SelectionDirection.Vertical && selectedCol === col}
-                    clickHandler={handleClick} />
+                    clickHandler={handleClick}
+                    keyPressHandler={handleKeyPress}
+                />
                 )
             })
             }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import './App.css'
 
 interface CellProps {
@@ -225,6 +225,15 @@ function Grid(props: GridProps) {
         }
     }
 
+    const startsGroupsForIndex = useMemo(() => {
+        return letters.map((_, index) =>
+            groups
+                .map((group, idx) => ({ group, idx }))
+                .filter(({ group }) => group[0] === index)
+                .map(({ idx }) => idx + 1)
+        );
+    }, [groups, letters])
+
     return (
         <div className="Grid" style={{ "--grid-size": props.gridSize } as React.CSSProperties}>
             {letters.map((letter, index) => {
@@ -274,25 +283,40 @@ function Candidates(props: CandidatesProps) {
     let [candidates, setCandidates] = useState<string[][]>([]);
 
     useEffect(() => {
-        let newCandidates: string[][] = Array.from({ length: props.known.length }, () => []);
-        for (const word of props.words) {
-            for (const [patIdx, pattern] of props.known.entries()) {
-                let matching = true;
-                for (const [index, value] of [...pattern].entries()) {
-                    if (value === ".") {
-                        continue;
+        let cancelled = false;
+
+        async function computeCandidates() {
+            const newCandidates: string[][] = Array.from({ length: props.known.length }, () => []);
+
+            for (const word of props.words) {
+                for (const [patIdx, pattern] of props.known.entries()) {
+                    let matching = true;
+                    for (const [index, value] of [...pattern].entries()) {
+                        if (value === ".") {
+                            continue;
+                        }
+                        if (word[index] && word[index].toLowerCase() !== value.toLowerCase()) {
+                            matching = false;
+                            break;
+                        }
                     }
-                    if (word[index] && word[index].toLowerCase() !== value.toLowerCase()) {
-                        matching = false;
-                        break;
+                    if (matching && word.length === pattern.length) {
+                        newCandidates[patIdx].push(word);
                     }
                 }
-                if (matching && word.length === pattern.length) {
-                    newCandidates[patIdx].push(word);
-                }
+
+                if (props.words.length > 1000) { await Promise.resolve(); }
+            }
+
+            if (!cancelled) {
+                setCandidates(newCandidates);
             }
         }
-        setCandidates(newCandidates);
+        computeCandidates();
+
+        return () => {
+            cancelled = true;
+        };
     }, [props.known, props.words])
 
     return props.known[props.selected] !== undefined ? (

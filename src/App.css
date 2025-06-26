@@ -13,6 +13,8 @@
 }
 
 .Cell {
+    position: relative;
+
     background-color: #1a1a1f;
     border-radius: 2px;
     transition: 200ms;
@@ -38,6 +40,17 @@
     &.active {
         background-color: #334;
         transition: inherit;
+    }
+
+    .groups {
+        position: absolute;
+        top: 1rem;
+        left: 1rem;
+
+        color: #888;
+        font-size: 1rem;
+        line-height: 1;
+        pointer-events: none;
     }
 }
 

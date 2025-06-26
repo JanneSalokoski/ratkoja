@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
 
 interface CellProps {
@@ -7,6 +7,7 @@ interface CellProps {
     active: boolean;
     selected: boolean;
     disabled: boolean;
+    startsGroups: number[];
     clickHandler: (index: number, e: React.MouseEvent) => void;
     keyPressHandler: (index: number, e: React.KeyboardEvent) => void;
 }
@@ -24,6 +25,11 @@ function Cell(props: CellProps) {
             onClick={(e: React.MouseEvent) => props.clickHandler(props.index, e)}
             onKeyUp={(e: React.KeyboardEvent) => props.keyPressHandler(props.index, e)}
         >
+            <span className="groups">
+                {
+                    props.startsGroups.join(",")
+                }
+            </span>
             <span className="letter">{props.letter}</span>
         </div>
     )
@@ -45,6 +51,51 @@ function Grid(props: GridProps) {
     let [selectedCol, setSelectedCol] = useState<number | undefined>();
     let [selectionDirection, setSelectionDirection] = useState<SelectionDirection>(SelectionDirection.Horizontal);
     let [disabled, setDisabled] = useState<number[]>([]);
+
+    let [groups, setGroups] = useState<number[][]>([]);
+
+    useEffect(() => {
+        let rowGroups: number[][] = [];
+        let colGroups: number[][] = [];
+        // rows
+        let startNewRow = true;
+        let startNewCol = true;
+        for (let row = 0; row < 5; row++) {
+            for (let col = 0; col < 5; col++) {
+                if (startNewRow) {
+                    rowGroups.push([]);
+                }
+
+                if (startNewCol) {
+                    colGroups.push([]);
+                }
+
+                let rowIndex = row * 5 + col;
+                if (!disabled.includes(rowIndex)) {
+                    startNewRow = false;
+                    rowGroups[rowGroups.length - 1].push(rowIndex)
+                } else {
+                    startNewRow = true;
+                }
+
+                let colIndex = col * 5 + row;
+                if (!disabled.includes(colIndex)) {
+                    startNewCol = false;
+                    colGroups[colGroups.length - 1].push(colIndex)
+                } else {
+                    startNewCol = true;
+                }
+
+                if (col === 4) {
+                    startNewRow = true;
+                }
+            }
+            startNewCol = true
+        }
+
+        let newGroups = rowGroups.concat(colGroups).filter((x) => x.length > 2);
+        setGroups(newGroups);
+    }, [disabled]);
 
     function handleClick(index: number, _: React.MouseEvent) {
         if (!props.disabling) {
@@ -123,6 +174,11 @@ function Grid(props: GridProps) {
                     disabled={disabled.includes(index)}
                     clickHandler={handleClick}
                     keyPressHandler={handleKeyPress}
+                    startsGroups={
+                        groups.map((group, idx) => ({ group, idx }))
+                            .filter(({ group }) => group[0] === index)
+                            .map(({ idx }) => idx + 1)
+                    }
                 />
                 )
             })

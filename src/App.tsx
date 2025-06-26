@@ -42,17 +42,26 @@ enum SelectionDirection {
 
 interface GridProps {
     disabling: boolean;
+    gridSize: number;
     handleKnown: (newKnown: string[]) => void
     handleGroupSelect: (newSelectedGroup: any) => void
 }
 
 function Grid(props: GridProps) {
-    let [letters, setLetters] = useState<(string)[]>(new Array(25).fill(""));
+    let [letters, setLetters] = useState<(string)[]>(new Array(props.gridSize * props.gridSize).fill(""));
+    useEffect(() => {
+        setLetters(new Array(props.gridSize * props.gridSize).fill(""));
+    }, [props.gridSize]);
+
+    console.log(letters.length);
     let [active, setActive] = useState<number | undefined>();
     let [selectedRow, setSelectedRow] = useState<number | undefined>();
     let [selectedCol, setSelectedCol] = useState<number | undefined>();
     let [selectionDirection, setSelectionDirection] = useState<SelectionDirection>(SelectionDirection.Horizontal);
     let [disabled, setDisabled] = useState<number[]>([]);
+    useEffect(() => {
+        setDisabled([]);
+    }, [props.gridSize]);
 
     let [groups, setGroups] = useState<number[][]>([]);
 
@@ -62,8 +71,8 @@ function Grid(props: GridProps) {
         // rows
         let startNewRow = true;
         let startNewCol = true;
-        for (let row = 0; row < 5; row++) {
-            for (let col = 0; col < 5; col++) {
+        for (let row = 0; row < props.gridSize; row++) {
+            for (let col = 0; col < props.gridSize; col++) {
                 if (startNewRow) {
                     rowGroups.push([]);
                 }
@@ -72,7 +81,7 @@ function Grid(props: GridProps) {
                     colGroups.push([]);
                 }
 
-                let rowIndex = row * 5 + col;
+                let rowIndex = row * props.gridSize + col;
                 if (!disabled.includes(rowIndex)) {
                     startNewRow = false;
                     rowGroups[rowGroups.length - 1].push(rowIndex)
@@ -80,7 +89,7 @@ function Grid(props: GridProps) {
                     startNewRow = true;
                 }
 
-                let colIndex = col * 5 + row;
+                let colIndex = col * props.gridSize + row;
                 if (!disabled.includes(colIndex)) {
                     startNewCol = false;
                     colGroups[colGroups.length - 1].push(colIndex)
@@ -88,7 +97,7 @@ function Grid(props: GridProps) {
                     startNewCol = true;
                 }
 
-                if (col === 4) {
+                if (col === props.gridSize - 1) {
                     startNewRow = true;
                 }
             }
@@ -108,9 +117,9 @@ function Grid(props: GridProps) {
             const end = group[group.length - 1];
 
             if (selectionDirection === SelectionDirection.Horizontal) {
-                return Math.floor(start / 5) === Math.floor(end / 5); // same row
+                return Math.floor(start / props.gridSize) === Math.floor(end / props.gridSize); // same row
             } else {
-                return start % 5 === end % 5; // same column
+                return start % props.gridSize === end % props.gridSize; // same column
             }
         });
 
@@ -156,10 +165,10 @@ function Grid(props: GridProps) {
                 setActive(index);
             }
 
-            const row = Math.floor(index / 5);
+            const row = Math.floor(index / props.gridSize);
             setSelectedRow(row);
 
-            const col = index % 5;
+            const col = index % props.gridSize;
             setSelectedCol(col);
 
             updateSelectedGroup(index);
@@ -185,19 +194,19 @@ function Grid(props: GridProps) {
             const index = active;
             const newChar = e.key === "Backspace" ? "" : e.key.toUpperCase();
 
-            const directionDelta = selectionDirection === SelectionDirection.Horizontal ? 1 : 5;
+            const directionDelta = selectionDirection === SelectionDirection.Horizontal ? 1 : props.gridSize;
             const offset = newChar === "" ? -directionDelta : directionDelta;
 
             let newIndex = index + offset;
 
             if (selectionDirection === SelectionDirection.Horizontal) {
-                const currentRow = Math.floor(index / 5);
-                const targetRow = Math.floor(newIndex / 5);
-                if (targetRow !== currentRow || newIndex < 0 || newIndex >= 25) {
+                const currentRow = Math.floor(index / props.gridSize);
+                const targetRow = Math.floor(newIndex / props.gridSize);
+                if (targetRow !== currentRow || newIndex < 0 || newIndex >= props.gridSize * props.gridSize) {
                     newIndex = index;
                 }
             } else {
-                if (newIndex < 0 || newIndex >= 25) {
+                if (newIndex < 0 || newIndex >= props.gridSize * props.gridSize) {
                     newIndex = index;
                 }
             }
@@ -217,10 +226,10 @@ function Grid(props: GridProps) {
     }
 
     return (
-        <div className="Grid">
+        <div className="Grid" style={{ "--grid-size": props.gridSize } as React.CSSProperties}>
             {letters.map((letter, index) => {
-                const row = Math.floor(index / 5);
-                const col = index % 5;
+                const row = Math.floor(index / props.gridSize);
+                const col = index % props.gridSize;
 
                 return (<Cell
                     index={index}
@@ -320,6 +329,8 @@ function App() {
 
     let [words, setWords] = useState<string[]>([]);
 
+    let [gridSize, setGridSize] = useState<number>(5);
+
     useEffect(() => {
         fetch("/words/finnish.txt")
             .then((res) => res.text())
@@ -329,9 +340,9 @@ function App() {
                     .map(word => word.trim())
                     .filter(Boolean);
 
-                setWords(newWords);
+                setWords(newWords.filter(word => word.length <= gridSize));
             })
-    }, [])
+    }, [gridSize]);
 
     let [selectedGroup, setSelectedGroup] = useState<number>(0);
 
@@ -341,7 +352,7 @@ function App() {
 
     return (
         <div className="App" tabIndex={-1} onKeyUp={keyUpHandler}>
-            <Grid disabling={disabling} handleKnown={knownHandler} handleGroupSelect={groupSelectHandler} />
+            <Grid disabling={disabling} handleKnown={knownHandler} handleGroupSelect={groupSelectHandler} gridSize={gridSize} />
             <div className="Controls">
                 <label htmlFor="disabling">
                     Disabling:
@@ -350,6 +361,10 @@ function App() {
                         onChange={handleSelect}
                         checked={disabling}
                     />
+                </label>
+                <label htmlFor="gridSize">
+                    Grid size:
+                    <input type="number" id="gridSize" min={0} max={100} step={1} value={gridSize} onChange={(e) => setGridSize(parseInt(e.target.value))} />
                 </label>
             </div>
             <Candidates known={known} words={words} selected={selectedGroup} />

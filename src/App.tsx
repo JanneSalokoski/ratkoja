@@ -73,6 +73,9 @@ function Grid(props: GridProps) {
     }
 
     function handleKeyPress(_: number, e: React.KeyboardEvent) {
+        e.preventDefault();
+        e.stopPropagation();
+
         if (active !== undefined) {
             const index = active;
             const newChar = e.key === "Backspace" ? "" : e.key.toUpperCase();
@@ -135,8 +138,14 @@ function App() {
         setDisabling(!disabling);
     }
 
+    function keyUpHandler(e: React.KeyboardEvent) {
+        if (e.key.toLowerCase() == "d") {
+            setDisabling(!disabling);
+        }
+    }
+
     return (
-        <div className="App">
+        <div className="App" tabIndex={-1} onKeyUp={keyUpHandler}>
             <Grid disabling={disabling} />
             <div className="Controls">
                 <label htmlFor="disabling">
@@ -144,6 +153,7 @@ function App() {
                     <input type="checkbox"
                         id="disabling"
                         onChange={handleSelect}
+                        checked={disabling}
                     />
                 </label>
             </div>

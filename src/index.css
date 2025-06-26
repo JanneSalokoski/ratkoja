@@ -22,3 +22,65 @@ body {
     width: 100vw;
     height: 100vw;
 }
+
+input,
+select,
+textarea {
+    background-color: #1a1a1f;
+    color: #eee;
+    border: 1px solid #333;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 1rem;
+    transition: background-color 200ms, border-color 200ms;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #555;
+    background-color: #1c1c22;
+}
+
+input[type="number"] {
+    width: 60px;
+    text-align: right;
+}
+
+input[type="checkbox"] {
+    accent-color: #556;
+    margin-right: 0.5rem;
+    vertical-align: middle
+}
+
+label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+}
+
+
+button {
+    background-color: #22242b;
+    color: #eee;
+    border: 1px solid #333;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 200ms, border-color 200ms;
+}
+
+button:hover {
+    background-color: #2a2d36;
+    border-color: #444;
+}
+
+button:disabled {
+    background-color: #1a1a1f;
+    color: #666;
+    cursor: not-allowed;
+    border-color: #2a2a2a;
+}

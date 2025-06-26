@@ -352,7 +352,9 @@ function App() {
 
     return (
         <div className="App" tabIndex={-1} onKeyUp={keyUpHandler}>
-            <Grid disabling={disabling} handleKnown={knownHandler} handleGroupSelect={groupSelectHandler} gridSize={gridSize} />
+            <div className="Header">
+                <h1>Ratkoja</h1>
+            </div>
             <div className="Controls">
                 <label htmlFor="disabling">
                     Disabling:
@@ -367,7 +369,12 @@ function App() {
                     <input type="number" id="gridSize" min={0} max={100} step={1} value={gridSize} onChange={(e) => setGridSize(parseInt(e.target.value))} />
                 </label>
             </div>
+            <Grid disabling={disabling} handleKnown={knownHandler} handleGroupSelect={groupSelectHandler} gridSize={gridSize} />
+
             <Candidates known={known} words={words} selected={selectedGroup} />
+            <div className="Footer">
+                (c) Janne Salokoski 2025
+            </div>
         </div>
     )
 }

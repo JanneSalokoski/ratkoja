@@ -23,14 +23,20 @@ function Cell(props: CellProps) {
                 `
             }
             onClick={(e: React.MouseEvent) => props.clickHandler(props.index, e)}
-            onKeyUp={(e: React.KeyboardEvent) => props.keyPressHandler(props.index, e)}
         >
             <span className="groups">
                 {
                     props.startsGroups.join(",")
                 }
             </span>
-            <span className="letter">{props.letter}</span>
+            <input className="letter letterInput"
+                type="text"
+                maxLength={1}
+                value={props.letter}
+                onKeyUp={(e: React.KeyboardEvent) => props.keyPressHandler(props.index, e)}
+                onChange={() => { }}
+                autoFocus={props.active}
+            />
         </div>
     )
 }

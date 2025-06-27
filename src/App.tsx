@@ -248,11 +248,7 @@ function Grid(props: GridProps) {
                     disabled={disabled.includes(index)}
                     clickHandler={handleClick}
                     keyPressHandler={handleKeyPress}
-                    startsGroups={
-                        groups.map((group, idx) => ({ group, idx }))
-                            .filter(({ group }) => group[0] === index)
-                            .map(({ idx }) => idx + 1)
-                    }
+                    startsGroups={startsGroupsForIndex[index]}
                 />
                 )
             })

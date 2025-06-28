@@ -1,0 +1,33 @@
+.Candidates {
+    display: grid;
+    justify-content: center;
+
+    max-height: 18rem;
+    overflow-y: scroll;
+}
+
+.candidate,
+.pattern {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.LetterBlock {
+    display: block;
+    width: 2rem;
+    height: 2rem;
+
+    background-color: #1a1a1f;
+    border-radius: 2px;
+
+    padding: 0.5rem;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pattern .LetterBlock {
+    background-color: #223;
+}

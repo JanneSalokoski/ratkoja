@@ -1,0 +1,45 @@
+.Cell {
+    position: relative;
+
+    background-color: #1a1a1f;
+    border-radius: 2px;
+    transition: 200ms;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    font-size: 2rem;
+
+    user-select: none;
+
+    &:hover {
+        background-color: #1c1c22;
+        transition: inherit;
+    }
+
+    &.selected {
+        background-color: #223;
+        transition: inherit;
+    }
+
+    &.active {
+        background-color: #334;
+        transition: inherit;
+    }
+
+    .groups {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+
+        color: #888;
+        font-size: 0.75rem;
+        line-height: 0.75;
+        pointer-events: none;
+    }
+}
+
+.Cell.disabled {
+    background-color: inherit;
+}

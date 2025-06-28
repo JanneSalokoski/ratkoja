@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import './App.css'
 
 interface CellProps {
@@ -13,6 +13,14 @@ interface CellProps {
 }
 
 function Cell(props: CellProps) {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (props.active) {
+            inputRef.current?.focus();
+        }
+    }, [props.active]);
+
     return (
         <div
             tabIndex={props.index}
@@ -29,13 +37,19 @@ function Cell(props: CellProps) {
                     props.startsGroups.join(",")
                 }
             </span>
-            <input className="letter letterInput"
+            <span className="letter">
+                {props.letter}
+            </span>
+            <input className="hidden-input"
+                ref={inputRef}
                 type="text"
                 maxLength={1}
                 value={props.letter}
                 onKeyUp={(e: React.KeyboardEvent) => props.keyPressHandler(props.index, e)}
                 onChange={() => { }}
                 autoFocus={props.active}
+                autoCapitalize="characters"
+                inputMode="text"
             />
         </div>
     )

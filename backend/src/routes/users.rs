@@ -2,8 +2,10 @@ use axum::{
     Router,
     extract::{Json, Path, State},
     http::StatusCode,
-    routing::{delete, get, post, put},
+    routing::get,
 };
+
+use axum_macros::debug_handler;
 
 use tracing::info;
 
@@ -12,11 +14,11 @@ use sqlx::PgPool;
 
 pub fn user_routes() -> Router<PgPool> {
     info!("Building user routes");
-    Router::new().route("/", get(list_users))
-    // .route("/", post(create_user))
-    // .route("/:id", get(get_user))
-    // .route("/:id", put(update_user))
-    // .route("/:id", delete(delete_user))
+
+    // Router::<PgPool>::new()
+    Router::<PgPool>::new()
+        .route("/", get(list_users).post(create_user))
+        .route("/:id", get(get_user).put(update_user).delete(delete_user))
 }
 
 async fn list_users(State(pool): State<PgPool>) -> Result<Json<Vec<User>>, StatusCode> {
@@ -34,6 +36,7 @@ async fn create_user(
     State(pool): State<PgPool>,
     Json(payload): Json<CreateUser>,
 ) -> Result<Json<User>, StatusCode> {
+    info!("Building create_user");
     let user = sqlx::query_as::<_, User>(
         "INSERT INTO users (username, email) VALUES ($1, $2) RETURNING *",
     )
@@ -46,10 +49,12 @@ async fn create_user(
     Ok(Json(user))
 }
 
+#[debug_handler]
 async fn get_user(
-    State(pool): State<PgPool>,
     Path(id): Path<i32>,
+    State(pool): State<PgPool>,
 ) -> Result<Json<User>, StatusCode> {
+    info!("Building get_user");
     let user = sqlx::query_as::<_, User>("SELECT * FROM users WHERE id = $1")
         .bind(id)
         .fetch_one(&pool)
